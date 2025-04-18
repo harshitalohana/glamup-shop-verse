@@ -9,13 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cart_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          quantity: number
+          selected_color: string | null
+          selected_size: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          quantity?: number
+          selected_color?: string | null
+          selected_size?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          quantity?: number
+          selected_color?: string | null
+          selected_size?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string
+          colors: string[] | null
+          created_at: string | null
+          description: string
+          featured: boolean
+          id: string
+          images: string[]
+          in_stock: boolean
+          name: string
+          price: number
+          rating: number | null
+          sizes: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          colors?: string[] | null
+          created_at?: string | null
+          description: string
+          featured?: boolean
+          id?: string
+          images?: string[]
+          in_stock?: boolean
+          name: string
+          price: number
+          rating?: number | null
+          sizes?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          colors?: string[] | null
+          created_at?: string | null
+          description?: string
+          featured?: boolean
+          id?: string
+          images?: string[]
+          in_stock?: boolean
+          name?: string
+          price?: number
+          rating?: number | null
+          sizes?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          budget: number | null
+          city: string | null
+          created_at: string | null
+          email: string | null
+          gender: string | null
+          id: string
+          interests: string[] | null
+          name: string | null
+          phone: string | null
+          pincode: string | null
+          profile_image: string | null
+          role: string | null
+        }
+        Insert: {
+          age?: number | null
+          budget?: number | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          gender?: string | null
+          id: string
+          interests?: string[] | null
+          name?: string | null
+          phone?: string | null
+          pincode?: string | null
+          profile_image?: string | null
+          role?: string | null
+        }
+        Update: {
+          age?: number | null
+          budget?: number | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          gender?: string | null
+          id?: string
+          interests?: string[] | null
+          name?: string | null
+          phone?: string | null
+          pincode?: string | null
+          profile_image?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

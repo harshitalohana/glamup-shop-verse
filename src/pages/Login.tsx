@@ -27,20 +27,13 @@ const Login = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        // Redirect to appropriate dashboard based on user role
-        // This will happen automatically in the AuthContext
+        // Redirect handled in AuthContext
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError("Invalid email or password");
       console.error(err);
     }
   };
-
-  // Sample users for demo purposes
-  const demoUsers = [
-    { email: "admin@glamup.com", password: "Admin user (use in form)" },
-    { email: "user@example.com", password: "Regular user (use in form)" },
-  ];
 
   return (
     <Layout>
@@ -73,15 +66,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <Link
-                      to="/forgot-password"
-                      className="text-sm text-glamup-purple hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -99,19 +84,6 @@ const Login = () => {
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </form>
-
-              {/* Demo users info - this would be removed in production */}
-              <div className="mt-4 p-3 bg-gray-100 rounded-md">
-                <p className="text-sm font-medium mb-2">Demo Accounts:</p>
-                <ul className="text-xs space-y-1">
-                  {demoUsers.map((user, index) => (
-                    <li key={index} className="flex justify-between">
-                      <span className="font-medium">{user.email}</span>
-                      <span className="text-gray-500">{user.password}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-sm text-center text-gray-600">

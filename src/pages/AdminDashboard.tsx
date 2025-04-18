@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,16 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
-import { mockProducts, mockUsers } from "@/data/mockData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProductCategory, Product, ClothingSize } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
-import { PlusCircle, Package, Users, BarChart3 } from "lucide-react";
+import { PlusCircle, Package, Users, BarChart3, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: "",
@@ -33,6 +34,27 @@ const AdminDashboard = () => {
     featured: false,
   });
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*');
+
+    if (error) {
+      toast({
+        title: "Error fetching products",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProducts(data || []);
+  };
+
   if (!currentUser || currentUser.role !== "admin") {
     navigate("/login");
     return null;
@@ -42,35 +64,95 @@ const AdminDashboard = () => {
     setNewProduct({ ...newProduct, [field]: value });
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // In a real app, this would send a request to add the product to the database
-    const product: Product = {
-      id: `product-${Date.now()}`,
-      ...newProduct as Omit<Product, 'id'>,
-    };
-    
-    // For demo purposes, just add to our mock array
-    mockProducts.push(product);
-    
-    toast({
-      title: "Product Added",
-      description: `${product.name} has been added to the catalog.`,
-    });
-    
-    // Reset form
-    setNewProduct({
-      name: "",
-      description: "",
-      price: 0,
-      category: "clothing",
-      images: ["/placeholder.svg"],
-      sizes: ["M"],
-      colors: ["Black"],
-      inStock: true,
-      featured: false,
-    });
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([newProduct])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Product Added",
+        description: `${data.name} has been added to the catalog.`,
+      });
+
+      setProducts([...products, data]);
+      
+      // Reset form
+      setNewProduct({
+        name: "",
+        description: "",
+        price: 0,
+        category: "clothing",
+        images: ["/placeholder.svg"],
+        sizes: ["M"],
+        colors: ["Black"],
+        inStock: true,
+        featured: false,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error adding product",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditProduct = async (product: Product) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ ...product })
+        .eq('id', product.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Product Updated",
+        description: `${product.name} has been updated.`,
+      });
+
+      fetchProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error updating product",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Product Deleted",
+        description: "The product has been removed from the catalog.",
+      });
+
+      setProducts(products.filter(p => p.id !== id));
+    } catch (error: any) {
+      toast({
+        title: "Error deleting product",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -84,7 +166,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Products</p>
-                <h3 className="text-2xl font-bold">{mockProducts.length}</h3>
+                <h3 className="text-2xl font-bold">{products.length}</h3>
               </div>
               <Package className="h-8 w-8 text-glamup-purple opacity-80" />
             </CardContent>
@@ -94,7 +176,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Users</p>
-                <h3 className="text-2xl font-bold">{mockUsers.length}</h3>
+                <h3 className="text-2xl font-bold">0</h3>
               </div>
               <Users className="h-8 w-8 text-glamup-purple opacity-80" />
             </CardContent>
@@ -104,7 +186,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Featured Products</p>
-                <h3 className="text-2xl font-bold">{mockProducts.filter(p => p.featured).length}</h3>
+                <h3 className="text-2xl font-bold">{products.filter(p => p.featured).length}</h3>
               </div>
               <BarChart3 className="h-8 w-8 text-glamup-purple opacity-80" />
             </CardContent>
@@ -137,7 +219,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockProducts.map((product) => (
+                    {products.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell>{product.name}</TableCell>
                         <TableCell>{product.category}</TableCell>
@@ -146,8 +228,20 @@ const AdminDashboard = () => {
                         <TableCell>{product.featured ? "Yes" : "No"}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">Edit</Button>
-                            <Button variant="destructive" size="sm">Delete</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditProduct(product)}
+                            >
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => handleDeleteProduct(product.id)}
+                            >
+                              Delete
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -176,20 +270,30 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.role}</TableCell>
-                        <TableCell>{user.city}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">View</Button>
-                            <Button variant="destructive" size="sm">Delete</Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    <TableRow key="user-1">
+                      <TableCell>User 1</TableCell>
+                      <TableCell>user1@example.com</TableCell>
+                      <TableCell>user</TableCell>
+                      <TableCell>New York</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">View</Button>
+                          <Button variant="destructive" size="sm">Delete</Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow key="user-2">
+                      <TableCell>User 2</TableCell>
+                      <TableCell>user2@example.com</TableCell>
+                      <TableCell>user</TableCell>
+                      <TableCell>Los Angeles</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">View</Button>
+                          <Button variant="destructive" size="sm">Delete</Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
@@ -314,8 +418,19 @@ const AdminDashboard = () => {
                   </div>
                   
                   <div className="pt-4">
-                    <Button type="submit" className="glamup-btn-primary">
-                      Add Product
+                    <Button 
+                      type="submit" 
+                      className="glamup-btn-primary w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Adding Product...
+                        </>
+                      ) : (
+                        'Add Product'
+                      )}
                     </Button>
                   </div>
                 </form>
