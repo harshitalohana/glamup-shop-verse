@@ -36,6 +36,20 @@ export interface Product {
   updated_at?: string;
 }
 
+// This type represents what Supabase requires for insertion
+export interface NewProduct {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  images: string[];
+  sizes?: string[];
+  colors?: string[];
+  in_stock: boolean;
+  featured?: boolean;
+  rating?: number;
+}
+
 export interface CurrencyExchange {
   base: string;
   target: string;

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ProductCategory, Product, ClothingSize } from "@/types";
+import { ProductCategory, Product, ClothingSize, NewProduct } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle, Package, Users, BarChart3, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,11 +22,12 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
 
-  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+  // Changed from Partial<Product> to match the Supabase structure requirements
+  const [newProduct, setNewProduct] = useState<NewProduct>({
     name: "",
     description: "",
     price: 0,
-    category: "clothing" as ProductCategory,
+    category: "clothing",
     images: ["/placeholder.svg"],
     sizes: ["M"],
     colors: ["Black"],
@@ -52,14 +53,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Cast the data from Supabase to match our Product type
-    const typedData = data?.map(item => ({
-      ...item,
-      category: item.category as ProductCategory,
-      sizes: item.sizes as ClothingSize[]
-    })) as Product[];
-
-    setProducts(typedData || []);
+    setProducts(data as Product[] || []);
   };
 
   if (!currentUser || currentUser.role !== "admin") {
@@ -87,9 +81,10 @@ const AdminDashboard = () => {
     }
 
     try {
+      // Insert the single NewProduct object, not an array
       const { data, error } = await supabase
         .from('products')
-        .insert([newProduct])
+        .insert(newProduct)
         .select()
         .single();
 
@@ -101,11 +96,7 @@ const AdminDashboard = () => {
       });
 
       // Cast the returned data to match our Product type
-      const newTypedProduct: Product = {
-        ...data,
-        category: data.category as ProductCategory,
-        sizes: data.sizes as ClothingSize[]
-      };
+      const newTypedProduct = data as unknown as Product;
       
       setProducts([...products, newTypedProduct]);
       
@@ -114,7 +105,7 @@ const AdminDashboard = () => {
         name: "",
         description: "",
         price: 0,
-        category: "clothing" as ProductCategory,
+        category: "clothing",
         images: ["/placeholder.svg"],
         sizes: ["M"],
         colors: ["Black"],
@@ -378,9 +369,9 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
                       <Select
-                        value={newProduct.category as string}
+                        value={newProduct.category}
                         onValueChange={(value) => 
-                          handleProductChange("category", value as ProductCategory)
+                          handleProductChange("category", value)
                         }
                       >
                         <SelectTrigger className="glamup-input">
@@ -400,7 +391,7 @@ const AdminDashboard = () => {
                       <Select
                         value={newProduct.sizes?.[0] as string}
                         onValueChange={(value) => 
-                          handleProductChange("sizes", [value as ClothingSize])
+                          handleProductChange("sizes", [value])
                         }
                         disabled={newProduct.category === "makeup" || newProduct.category === "accessories"}
                       >
