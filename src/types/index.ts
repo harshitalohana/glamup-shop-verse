@@ -73,3 +73,9 @@ export interface ShoppingCart {
   items: CartItem[];
   total: number;
 }
+
+// New type to support Supabase's authentication session
+export interface UserSession {
+  user: User | null;
+  session: any | null;
+}
