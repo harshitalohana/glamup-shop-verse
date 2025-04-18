@@ -4,11 +4,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useCurrency } from "@/context/CurrencyContext";
-import { Heart, ShoppingCart, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/context/CartContext";
 import { toast } from "@/components/ui/use-toast";
-import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -18,10 +17,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const { formatPrice } = useCurrency();
   const { currentUser } = useAuth();
+  const { addToCart } = useCart();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const addToCart = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent navigation when clicking add to cart
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     
     if (!currentUser) {
       toast({
@@ -33,50 +33,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       return;
     }
 
+    if (!product.in_stock) {
+      toast({
+        title: "Product unavailable",
+        description: "This product is currently out of stock.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAddingToCart(true);
-
     try {
-      // Check if item already exists in cart
-      const { data: existingCartItems, error: fetchError } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('product_id', product.id)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no rows returned
-        throw fetchError;
-      }
-
-      if (existingCartItems) {
-        // Update quantity if already in cart
-        const { error: updateError } = await supabase
-          .from('cart_items')
-          .update({ quantity: existingCartItems.quantity + 1 })
-          .eq('id', existingCartItems.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Add new item to cart
-        const { error: insertError } = await supabase
-          .from('cart_items')
-          .insert({
-            user_id: currentUser.id,
-            product_id: product.id,
-            quantity: 1,
-            selected_size: product.sizes?.[0] || null,
-            selected_color: product.colors?.[0] || null
-          });
-
-        if (insertError) throw insertError;
-      }
-
+      await addToCart(product, 1);
       toast({
         title: "Added to cart",
         description: `${product.name} has been added to your cart`,
       });
     } catch (error) {
-      console.error('Error adding item to cart:', error);
+      console.error('Error adding to cart:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart. Please try again.",
@@ -108,14 +82,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <Eye className="h-4 w-4 mr-1" /> View
             </Button>
             <Button
-              onClick={addToCart}
+              onClick={handleAddToCart}
               className="flex-1 bg-glamup-purple hover:bg-glamup-purple/90"
               size="sm"
               disabled={isAddingToCart || !product.in_stock}
             >
               {isAddingToCart ? (
                 <span className="flex items-center">
-                  <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1"></span>
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
                   Adding...
                 </span>
               ) : (

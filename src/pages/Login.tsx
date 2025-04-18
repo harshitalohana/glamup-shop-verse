@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,14 +32,9 @@ const Login = () => {
       return;
     }
 
-    try {
-      const success = await login(email, password);
-      if (success) {
-        // Redirect handled in AuthContext
-      }
-    } catch (err) {
-      setError("Invalid email or password");
-      console.error(err);
+    const success = await login(email, password);
+    if (success) {
+      navigate('/');
     }
   };
 
@@ -63,6 +66,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="glamup-input"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -74,6 +78,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="glamup-input"
+                    disabled={isLoading}
                   />
                 </div>
                 <Button
@@ -81,7 +86,14 @@ const Login = () => {
                   className="w-full glamup-btn-primary"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
                 </Button>
               </form>
             </CardContent>
