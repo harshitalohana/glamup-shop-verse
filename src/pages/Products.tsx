@@ -9,16 +9,19 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { mockProducts } from "@/data/mockData";
 import { ClothingSize, ProductCategory, Product } from "@/types";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 const Products = () => {
   const { formatPrice } = useCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
   
   // Parse URL query parameters
   const initialCategory = searchParams.get("category") as ProductCategory | null;
@@ -32,6 +35,37 @@ const Products = () => {
     sizes: [] as ClothingSize[],
     sort: "featured"
   });
+
+  // Fetch products from Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        setProducts(data as Product[] || []);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch products. Please try again later.",
+          variant: "destructive"
+        });
+        // Fallback to empty array
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Update URL when filters change
   useEffect(() => {
@@ -49,7 +83,7 @@ const Products = () => {
   }, [filters.category, filters.search, setSearchParams]);
 
   // Apply filters to products
-  const filteredProducts = mockProducts.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     // Category filter
     if (filters.category !== "all" && product.category !== filters.category) {
       return false;
@@ -64,7 +98,7 @@ const Products = () => {
     if (
       filters.sizes.length > 0 &&
       product.sizes &&
-      !filters.sizes.some((size) => product.sizes?.includes(size))
+      !filters.sizes.some((size) => product.sizes?.includes(size as string))
     ) {
       return false;
     }
@@ -405,7 +439,12 @@ const Products = () => {
 
           {/* Product Grid */}
           <div className="flex-1">
-            {sortedProducts.length === 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-glamup-purple mb-4" />
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <div className="text-center py-12">
                 <h3 className="text-xl font-medium mb-2">No products found</h3>
                 <p className="text-gray-500 mb-6">

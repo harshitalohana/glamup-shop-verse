@@ -58,10 +58,15 @@ export interface CurrencyExchange {
 }
 
 export interface CartItem {
-  product: Product;
+  id?: string;
+  product_id: string;
+  product?: Product;
   quantity: number;
-  selectedSize?: ClothingSize;
-  selectedColor?: string;
+  user_id: string;
+  selected_size?: string;
+  selected_color?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ShoppingCart {
