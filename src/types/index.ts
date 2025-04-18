@@ -29,9 +29,11 @@ export interface Product {
   images: string[];
   sizes?: ClothingSize[];
   colors?: string[];
-  inStock: boolean;
+  in_stock: boolean;  // Changed from inStock to in_stock to match DB schema
   featured?: boolean;
   rating?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CurrencyExchange {

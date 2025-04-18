@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -30,7 +31,7 @@ const AdminDashboard = () => {
     images: ["/placeholder.svg"],
     sizes: ["M"],
     colors: ["Black"],
-    inStock: true,
+    in_stock: true,
     featured: false,
   });
 
@@ -93,7 +94,7 @@ const AdminDashboard = () => {
         images: ["/placeholder.svg"],
         sizes: ["M"],
         colors: ["Black"],
-        inStock: true,
+        in_stock: true,
         featured: false,
       });
     } catch (error: any) {
@@ -111,7 +112,7 @@ const AdminDashboard = () => {
     try {
       const { error } = await supabase
         .from('products')
-        .update({ ...product })
+        .update(product)
         .eq('id', product.id);
 
       if (error) throw error;
@@ -224,7 +225,7 @@ const AdminDashboard = () => {
                         <TableCell>{product.name}</TableCell>
                         <TableCell>{product.category}</TableCell>
                         <TableCell>${product.price.toFixed(2)}</TableCell>
-                        <TableCell>{product.inStock ? "Yes" : "No"}</TableCell>
+                        <TableCell>{product.in_stock ? "Yes" : "No"}</TableCell>
                         <TableCell>{product.featured ? "Yes" : "No"}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
@@ -398,8 +399,8 @@ const AdminDashboard = () => {
                         <input
                           type="checkbox"
                           id="inStock"
-                          checked={newProduct.inStock}
-                          onChange={(e) => handleProductChange("inStock", e.target.checked)}
+                          checked={newProduct.in_stock}
+                          onChange={(e) => handleProductChange("in_stock", e.target.checked)}
                         />
                       </div>
                     </div>
