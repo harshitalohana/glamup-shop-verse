@@ -98,7 +98,7 @@ const Products = () => {
     if (
       filters.sizes.length > 0 &&
       product.sizes &&
-      !filters.sizes.some((size) => product.sizes?.includes(size as string))
+      !filters.sizes.some((size) => product.sizes?.includes(size))
     ) {
       return false;
     }
@@ -133,11 +133,14 @@ const Products = () => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSizeToggle = (size: ClothingSize) => {
+  const handleSizeToggle = (size: string) => {
+    // Fixed: Cast the string to ClothingSize before using it
+    const clothingSize = size as ClothingSize;
+    
     setFilters((prev) => {
-      const sizes = prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size];
+      const sizes = prev.sizes.includes(clothingSize)
+        ? prev.sizes.filter((s) => s !== clothingSize)
+        : [...prev.sizes, clothingSize];
       return { ...prev, sizes };
     });
   };
