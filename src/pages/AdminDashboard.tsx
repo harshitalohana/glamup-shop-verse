@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -27,7 +26,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     price: 0,
-    category: "clothing",
+    category: "clothing" as ProductCategory,
     images: ["/placeholder.svg"],
     sizes: ["M"],
     colors: ["Black"],
@@ -53,7 +52,14 @@ const AdminDashboard = () => {
       return;
     }
 
-    setProducts(data || []);
+    // Cast the data from Supabase to match our Product type
+    const typedData = data?.map(item => ({
+      ...item,
+      category: item.category as ProductCategory,
+      sizes: item.sizes as ClothingSize[]
+    })) as Product[];
+
+    setProducts(typedData || []);
   };
 
   if (!currentUser || currentUser.role !== "admin") {
@@ -69,6 +75,17 @@ const AdminDashboard = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Make sure newProduct has all required fields
+    if (!newProduct.name || !newProduct.description || !newProduct.price || !newProduct.category) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('products')
@@ -83,14 +100,21 @@ const AdminDashboard = () => {
         description: `${data.name} has been added to the catalog.`,
       });
 
-      setProducts([...products, data]);
+      // Cast the returned data to match our Product type
+      const newTypedProduct: Product = {
+        ...data,
+        category: data.category as ProductCategory,
+        sizes: data.sizes as ClothingSize[]
+      };
+      
+      setProducts([...products, newTypedProduct]);
       
       // Reset form
       setNewProduct({
         name: "",
         description: "",
         price: 0,
-        category: "clothing",
+        category: "clothing" as ProductCategory,
         images: ["/placeholder.svg"],
         sizes: ["M"],
         colors: ["Black"],
@@ -354,7 +378,7 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
                       <Select
-                        value={newProduct.category}
+                        value={newProduct.category as string}
                         onValueChange={(value) => 
                           handleProductChange("category", value as ProductCategory)
                         }
@@ -374,7 +398,7 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
                       <Label htmlFor="sizes">Available Sizes</Label>
                       <Select
-                        value={newProduct.sizes?.[0]}
+                        value={newProduct.sizes?.[0] as string}
                         onValueChange={(value) => 
                           handleProductChange("sizes", [value as ClothingSize])
                         }

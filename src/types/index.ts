@@ -25,11 +25,11 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  category: ProductCategory;
+  category: ProductCategory | string; // Allow regular string to match Supabase data
   images: string[];
-  sizes?: ClothingSize[];
+  sizes?: ClothingSize[] | string[]; // Allow regular string array to match Supabase data
   colors?: string[];
-  in_stock: boolean;  // Changed from inStock to in_stock to match DB schema
+  in_stock: boolean;  
   featured?: boolean;
   rating?: number;
   created_at?: string;

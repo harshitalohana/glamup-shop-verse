@@ -11,7 +11,7 @@ export const mockProducts: Product[] = [
     images: ["/placeholder.svg"],
     sizes: ["S", "M", "L", "XL"],
     colors: ["White", "Blue", "Pink"],
-    inStock: true,
+    in_stock: true,
     featured: true,
     rating: 4.5
   },
@@ -24,7 +24,7 @@ export const mockProducts: Product[] = [
     images: ["/placeholder.svg"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: ["Blue", "Black"],
-    inStock: true,
+    in_stock: true,
     rating: 4.2
   },
   {
@@ -35,7 +35,7 @@ export const mockProducts: Product[] = [
     category: "accessories",
     images: ["/placeholder.svg"],
     colors: ["Brown", "Black", "Tan"],
-    inStock: true,
+    in_stock: true,
     featured: true,
     rating: 4.7
   },
@@ -47,7 +47,7 @@ export const mockProducts: Product[] = [
     category: "makeup",
     images: ["/placeholder.svg"],
     colors: ["Red", "Nude", "Berry"],
-    inStock: true,
+    in_stock: true,
     rating: 4.8
   },
   {
@@ -59,7 +59,7 @@ export const mockProducts: Product[] = [
     images: ["/placeholder.svg"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: ["Navy", "Charcoal", "Black"],
-    inStock: true,
+    in_stock: true,
     featured: true,
     rating: 4.6
   },
@@ -71,7 +71,7 @@ export const mockProducts: Product[] = [
     category: "accessories",
     images: ["/placeholder.svg"],
     colors: ["Silver", "Gold"],
-    inStock: true,
+    in_stock: true,
     rating: 4.3
   },
   {
@@ -82,7 +82,7 @@ export const mockProducts: Product[] = [
     category: "makeup",
     images: ["/placeholder.svg"],
     colors: ["Fair", "Medium", "Tan", "Deep"],
-    inStock: true,
+    in_stock: true,
     featured: true,
     rating: 4.5
   },
@@ -95,7 +95,7 @@ export const mockProducts: Product[] = [
     images: ["/placeholder.svg"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: ["White", "Black", "Gray", "Navy"],
-    inStock: true,
+    in_stock: true,
     rating: 4.4
   }
 ];
