@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
+import { v4 as uuidv4 } from 'uuid';
 
 const interests = [
   { id: "fashion", label: "Fashion" },
@@ -34,10 +38,11 @@ const Register = () => {
     age: 25,
     budget: 500,
     role: "user" as const,
-    profileImage: undefined as File | undefined,
   });
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,7 +65,7 @@ const Register = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setFormData((prev) => ({ ...prev, profileImage: file }));
+      setProfileImage(file);
 
       // Create preview
       const reader = new FileReader();
@@ -90,6 +95,30 @@ const Register = () => {
     return true;
   };
 
+  const uploadProfileImage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `profile-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        return null;
+      }
+
+      // Get the public URL for the uploaded file
+      const { data } = supabase.storage.from('profiles').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadProfileImage:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -97,11 +126,13 @@ const Register = () => {
     if (!validateForm()) return;
 
     try {
-      // In a real app, we'd upload the image to a server and get a URL
-      // For now, we'll use a fake URL if an image was selected
-      const profileImage = formData.profileImage 
-        ? URL.createObjectURL(formData.profileImage) 
-        : undefined;
+      setIsSubmitting(true);
+
+      // Upload profile image if selected
+      let profileImageUrl: string | undefined = undefined;
+      if (profileImage) {
+        profileImageUrl = await uploadProfileImage(profileImage) || undefined;
+      }
 
       const success = await register({
         name: formData.name,
@@ -115,15 +146,21 @@ const Register = () => {
         age: formData.age,
         budget: formData.budget,
         role: formData.role,
-        profileImage,
+        profileImage: profileImageUrl,
       });
 
       if (success) {
-        // User will be redirected automatically by AuthContext
+        toast({
+          title: "Account created successfully",
+          description: "Welcome to GlamUp!",
+        });
+        // User will be redirected by AuthContext
       }
     } catch (err) {
+      console.error('Registration error:', err);
       setError("An unexpected error occurred. Please try again.");
-      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -358,9 +395,9 @@ const Register = () => {
                 <Button
                   type="submit"
                   className="w-full glamup-btn-primary"
-                  disabled={isLoading}
+                  disabled={isSubmitting || isLoading}
                 >
-                  {isLoading ? "Creating account..." : "Create Account"}
+                  {isSubmitting ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
             </CardContent>

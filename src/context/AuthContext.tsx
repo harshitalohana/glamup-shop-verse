@@ -33,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session);
         setSession(session);
         
         if (session?.user) {
@@ -43,12 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }, 0);
         } else {
           setCurrentUser(null);
+          setIsLoading(false);
         }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Existing session:", session);
       setSession(session);
       
       if (session?.user) {
@@ -65,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching user profile for:", userId);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -76,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (profile) {
+        console.log("Profile data retrieved:", profile);
         // Transform the profile data to match our User type
         const userData: User = {
           id: profile.id,
@@ -93,6 +98,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setCurrentUser(userData);
+      } else {
+        console.warn("No profile found for user:", userId);
+        setCurrentUser(null);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -101,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Failed to fetch user profile",
         variant: "destructive",
       });
+      setCurrentUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -110,12 +119,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      console.log("Attempting login for:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login failed",
           description: error.message,
@@ -124,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       
+      console.log("Login successful:", data);
       // The user data is fetched by onAuthStateChange
       toast({
         title: "Login successful",
@@ -132,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return true;
     } catch (error: any) {
+      console.error("Login exception:", error);
       toast({
         title: "Login failed",
         description: error.message || "Failed to login",
@@ -149,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      console.log("Starting registration for:", userData.email);
       // First, register the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -156,12 +170,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (authError) {
+        console.error("Registration auth error:", authError);
         throw authError;
       }
       
       if (!authData.user) {
+        console.error("No user created during registration");
         throw new Error("Failed to create user");
       }
+      
+      console.log("Auth user created:", authData.user.id);
       
       // Then create the user profile in our profiles table
       const { error: profileError } = await supabase.from('profiles').upsert({
@@ -180,9 +198,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (profileError) {
+        console.error("Profile creation error:", profileError);
         throw profileError;
       }
       
+      console.log("Profile created successfully");
       toast({
         title: "Registration successful",
         description: "Your account has been created.",
@@ -190,6 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return true;
     } catch (error: any) {
+      console.error("Registration exception:", error);
       toast({
         title: "Registration failed",
         description: error.message || "Failed to register",
@@ -202,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    console.log("Logging out user");
     await supabase.auth.signOut();
     setCurrentUser(null);
     toast({
