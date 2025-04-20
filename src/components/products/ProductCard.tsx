@@ -1,4 +1,5 @@
 
+import React, { useState } from "react";
 import { Product } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
