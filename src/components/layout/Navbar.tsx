@@ -72,9 +72,12 @@ const Navbar = () => {
                 <Avatar>
                   <AvatarImage src={currentUser?.profileImage || ""} />
                   <AvatarFallback className="bg-glamup-purple text-white">
-                    {currentUser?.name.substring(0, 2).toUpperCase()}
+                    {currentUser?.name ? currentUser.name.substring(0, 2).toUpperCase() : "GU"}
                   </AvatarFallback>
                 </Avatar>
+                <span className="hidden sm:inline text-sm font-medium">
+                  {currentUser?.role === "admin" ? "Admin" : "My Account"}
+                </span>
               </div>
               <Button variant="outline" onClick={handleLogout}>Logout</Button>
             </div>
@@ -131,7 +134,7 @@ const Navbar = () => {
                   <Button variant="outline" onClick={() => navigateTo(
                     currentUser?.role === "admin" ? "/admin-dashboard" : "/dashboard"
                   )}>
-                    Dashboard
+                    {currentUser?.role === "admin" ? "Admin Panel" : "My Account"}
                   </Button>
                   <Button variant="destructive" onClick={handleLogout}>Logout</Button>
                 </>

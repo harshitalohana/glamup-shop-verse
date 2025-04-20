@@ -26,7 +26,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin h-8 w-8 border-4 border-glamup-purple border-t-transparent rounded-full"></div>
+    </div>;
   }
   
   if (!isAuthenticated) {
@@ -40,7 +42,9 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin h-8 w-8 border-4 border-glamup-purple border-t-transparent rounded-full"></div>
+    </div>;
   }
   
   if (!currentUser || currentUser.role !== 'admin') {
