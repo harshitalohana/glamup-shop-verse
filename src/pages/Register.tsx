@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -147,8 +146,9 @@ const Register = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Basic Info */}
+                  
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name *</Label>
                     <Input
@@ -204,7 +204,7 @@ const Register = () => {
                     />
                   </div>
 
-                  {/* Contact Info */}
+                  
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input
